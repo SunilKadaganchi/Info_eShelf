@@ -2,6 +2,7 @@ package com.eShelf.info.e.library.service;
 
 import com.eShelf.info.e.library.dto.BookAddRequestDto;
 import com.eShelf.info.e.library.dto.BookUpdateRequestDto;
+import com.eShelf.info.e.library.model.Book;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -20,6 +21,11 @@ public class BookServiceImpl implements BookService{
 
     @Override
     public boolean deleteBook(UUID id) {
-        return false;
+        return true;
+    }
+
+    @Override
+    public Book getAllBooks() {
+        return null;
     }
 }

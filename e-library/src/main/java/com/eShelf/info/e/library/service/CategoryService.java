@@ -1,10 +1,16 @@
 package com.eShelf.info.e.library.service;
 
+import com.eShelf.info.e.library.dto.CategoryResponseDto;
+import com.eShelf.info.e.library.model.Category;
+
+import java.util.List;
 import java.util.UUID;
 
 public interface CategoryService {
-    String addCategory(String categoryName);
-    String updateCategory(UUID categoryId , String newCategoryName);
+
+    List<String> getAllCategories();
+    CategoryResponseDto addCategory(String categoryName);
+    CategoryResponseDto updateCategory(UUID categoryId, String newCategoryName);
     boolean deleteCategory(UUID categoryId);
-    UUID getCategoryByName(String name);
+    CategoryResponseDto getCategoryByName(String name);
 }
