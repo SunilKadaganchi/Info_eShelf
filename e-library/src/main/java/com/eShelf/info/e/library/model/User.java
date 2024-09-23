@@ -16,19 +16,18 @@ public class User extends BaseModel{
     private String emailId;
     private String password;
     private int employeeId;
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private String role;
     private int dueAmount;
 
     public User() {
     }
-    public User(String name, String emailId, String password, int employeeId, Role role, int dueAmount) {
+    public User(String name, String emailId, String password, int employeeId, String role) {
         this.name = name;
         this.emailId = emailId;
         this.password = password;
         this.employeeId = employeeId;
         this.role = role;
-        this.dueAmount = dueAmount;
+        this.dueAmount = 0;
     }
 
 

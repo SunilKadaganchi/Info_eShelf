@@ -1,6 +1,9 @@
 package com.eShelf.info.e.library.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 @Entity
@@ -8,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class Book extends BaseModel{
     private String bookName;
+    @ManyToOne
     private Category category;
     private String authorName;
     private String description;
