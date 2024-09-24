@@ -1,14 +1,14 @@
 package com.eShelf.info.e.library.service;
 
-import com.eShelf.info.e.library.dto.BookAddRequestDto;
-import com.eShelf.info.e.library.dto.BookUpdateRequestDto;
+import com.eShelf.info.e.library.dto.BookRequestDto;
 import com.eShelf.info.e.library.model.Book;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface BookService {
-    boolean addBook(BookAddRequestDto bookAddRequestDto);
-    boolean updateBook(BookUpdateRequestDto bookUpdateRequestDto);
+    Book addBook(BookRequestDto bookRequestDto, String categoryName);
+    Book updateBook(UUID id, BookRequestDto bookRequestDto);
     boolean deleteBook(UUID id);
-    Book getAllBooks();
+    List<Book> getAllBooks();
 }
