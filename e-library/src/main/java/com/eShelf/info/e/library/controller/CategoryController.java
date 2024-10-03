@@ -22,7 +22,12 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
-    @PostMapping()
+    @GetMapping("/{name}")
+    public ResponseEntity<CategoryResponseDto> getCategoryByName(@PathVariable("name") String name){
+        return ResponseEntity.ok(categoryService.getCategoryByName(name));
+    }
+
+    @PostMapping("/add")
     public ResponseEntity<CategoryResponseDto> addCategory(@RequestBody CategoryRequestDto categoryRequestDto){
         return ResponseEntity.ok(categoryService.addCategory(categoryRequestDto.getName()));
     }

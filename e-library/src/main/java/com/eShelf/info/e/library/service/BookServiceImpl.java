@@ -1,23 +1,29 @@
 package com.eShelf.info.e.library.service;
 
 import com.eShelf.info.e.library.dto.BookRequestDto;
+import com.eShelf.info.e.library.dto.BookResponseDto;
+import com.eShelf.info.e.library.dto.CategoryResponseDto;
+import com.eShelf.info.e.library.exception.IdNotFoundException;
 import com.eShelf.info.e.library.mapper.BookDtoMapper;
 import com.eShelf.info.e.library.model.Book;
 import com.eShelf.info.e.library.model.Category;
 import com.eShelf.info.e.library.repo.BookRepository;
 import com.eShelf.info.e.library.repo.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.awt.image.ImageProducer;
+import java.util.*;
 
 @Service
 public class BookServiceImpl implements BookService{
 
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private BookRepository bookRepository;
 
@@ -69,7 +75,105 @@ public class BookServiceImpl implements BookService{
     }
 
     @Override
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public List<BookResponseDto> getAllBooks() {
+        List<Book> books = bookRepository.findAll();
+        List<BookResponseDto> bookResponseDtos = new ArrayList<>();
+        for(Book book : books){
+            bookResponseDtos.add(BookDtoMapper.convertEntityToBookResponseDto(book));
+        }
+        return bookResponseDtos;
     }
+
+    @Override
+    public List<BookResponseDto> getBooksByCategoryId(UUID id) {
+        Optional<Category> category = categoryRepository.findById(id);
+        if(category.isEmpty()){
+            throw new IdNotFoundException("Given Category ID is Not Found");
+        }
+
+        List<Book> bookList = bookRepository.findAllByCategory_id(category.get().getId());
+        if(bookList.isEmpty()){
+            return new ArrayList<>();
+        }
+        List<BookResponseDto> bookResponseDtos = new ArrayList<>();
+        for(Book book : bookList){
+            bookResponseDtos.add(BookDtoMapper.convertEntityToBookResponseDto(book));
+        }
+        return bookResponseDtos;
+    }
+
+    @Override
+    public List<BookResponseDto> getBooksByCategoryName(String name) {
+        CategoryResponseDto category = categoryService.getCategoryByName(name);
+
+        UUID categoryId = category.getId();
+        return getBooksByCategoryId(categoryId);
+    }
+
+    @Override
+    public Map<String, List<BookResponseDto>> getTop5BooksCategoryWise() {
+        List<Book> topRatedBooks = bookRepository.getTop5BooksCategoryWise();
+        Map<String , List<BookResponseDto>> responseMap = new HashMap<>();
+
+        for(Book book : topRatedBooks){
+            Category category = book.getCategory();
+            String categoryName = category.getCategoryName();
+
+            BookResponseDto bookResponseDto = BookDtoMapper.convertEntityToBookResponseDto(book);
+
+            if(responseMap.containsKey(categoryName)){
+                List<BookResponseDto> bookResponseList =responseMap.get(categoryName);
+                bookResponseList.add(bookResponseDto);
+                responseMap.put(categoryName , bookResponseList);
+            }
+            else {
+                List<BookResponseDto> list = new ArrayList<>();
+                list.add(bookResponseDto);
+                responseMap.put(categoryName,list);
+            }
+        }
+
+        return responseMap;
+    }
+
+    @Override
+    public Page<Book> getBooksPageWise(int pageNum, int pageSize, UUID categoryId) {
+
+        Page<Book> booksInPage = bookRepository.findAllByCategory_id(PageRequest.of(pageNum,pageSize),categoryId);
+
+        return booksInPage;
+
+    }
+
+
+
+
+
+
+
+
+
+//    @Override
+//    public Map<String, List<BookResponseDto>> getBooksCategoryWise() {
+//       Map<String,List<Book>> responseMap = new HashMap<>();
+//
+//       List<Book> bookList = bookRepository.findAll();
+//       List<BookResponseDto> bookResponseDtos = new ArrayList<>();
+//
+//       for (Book book : bookList){
+//            Category category = book.getCategory();
+//            String categoryName = category.getCategoryName();
+//
+//            if(responseMap.containsKey(categoryName)){
+//                responseMap.get(categoryName).add(book);
+//            }
+//            else{
+//                List<Book> list = new ArrayList<>();
+//                list.add(book);
+//                responseMap.put(categoryName,list);
+//            }
+//       }
+//
+//       return null;
+//    }
 }

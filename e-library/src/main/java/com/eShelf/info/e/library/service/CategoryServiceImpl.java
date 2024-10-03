@@ -1,6 +1,7 @@
 package com.eShelf.info.e.library.service;
 
 import com.eShelf.info.e.library.dto.CategoryResponseDto;
+import com.eShelf.info.e.library.exception.CategoryNotFoundException;
 import com.eShelf.info.e.library.mapper.CategoryDtoMapper;
 import com.eShelf.info.e.library.model.Category;
 import com.eShelf.info.e.library.repo.CategoryRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,8 +30,11 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public CategoryResponseDto getCategoryByName(String name) {
-        Category category = categoryRepository.findByCategoryName(name).get();
-        return CategoryDtoMapper.convertCategoryToResponseDto(category);
+        Optional<Category> category = categoryRepository.findByCategoryName(name);
+        if(category.isEmpty()){
+            throw new CategoryNotFoundException("Category with given name is not found");
+        }
+        return CategoryDtoMapper.convertCategoryToResponseDto(category.get());
     }
 
     @Override

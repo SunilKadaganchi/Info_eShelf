@@ -1,6 +1,7 @@
 package com.eShelf.info.e.library.mapper;
 
 import com.eShelf.info.e.library.dto.BookRequestDto;
+import com.eShelf.info.e.library.dto.BookResponseDto;
 import com.eShelf.info.e.library.model.Book;
 
 public class BookDtoMapper {
@@ -16,5 +17,17 @@ public class BookDtoMapper {
 
         return book;
 
+    }
+
+    public static BookResponseDto convertEntityToBookResponseDto(Book book){
+        BookResponseDto responseDto = new BookResponseDto();
+        responseDto.setBookName(book.getBookName());
+        responseDto.setCategoryName(book.getCategory().getCategoryName());
+        responseDto.setDescription(book.getDescription());
+        responseDto.setAuthorName(book.getAuthorName());
+        responseDto.setRating(book.getRating());
+        responseDto.setBookAvailableCount(book.getBookAvailableCount());
+
+        return responseDto;
     }
 }
