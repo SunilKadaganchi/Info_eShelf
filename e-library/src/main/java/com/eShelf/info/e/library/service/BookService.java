@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public interface BookService {
@@ -15,12 +16,26 @@ public interface BookService {
     Book updateBook(UUID id, BookRequestDto bookRequestDto);
     boolean deleteBook(UUID id);
     List<BookResponseDto> getAllBooks();
+    Map<String, List<BookResponseDto>> getTop5BooksCategoryWise();
+    Page<Book> getBooksPageWise(int pageNum, int pageSize,UUID categoryId);
+    BookResponseDto viewBook(UUID bookId);
+    Boolean addToWishlist(Map<String, Object> reqBody);
+
+    String reserveBook(Map<String,Object> reqBody);
+
+    String collectBook(Map<String, Object> reqBody);
+
+    void releaseBooks();
+
+
+
+
+
+
 
     List<BookResponseDto> getBooksByCategoryId(UUID id);
 
     List<BookResponseDto> getBooksByCategoryName(String name);
 
-    Map<String, List<BookResponseDto>> getTop5BooksCategoryWise();
 
-    Page<Book> getBooksPageWise(int pageNum, int pageSize,UUID categoryId);
 }

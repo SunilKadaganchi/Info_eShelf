@@ -6,14 +6,19 @@ import com.eShelf.info.e.library.dto.CategoryResponseDto;
 import com.eShelf.info.e.library.exception.IdNotFoundException;
 import com.eShelf.info.e.library.mapper.BookDtoMapper;
 import com.eShelf.info.e.library.model.Book;
+import com.eShelf.info.e.library.model.BookStatus;
 import com.eShelf.info.e.library.model.Category;
+import com.eShelf.info.e.library.model.UserBookStatus;
 import com.eShelf.info.e.library.repo.BookRepository;
+import com.eShelf.info.e.library.repo.BookWishlistRepository;
 import com.eShelf.info.e.library.repo.CategoryRepository;
+import com.eShelf.info.e.library.repo.UserBookStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import javax.management.relation.RoleUnresolved;
 import java.awt.image.ImageProducer;
 import java.util.*;
 
@@ -26,6 +31,10 @@ public class BookServiceImpl implements BookService{
     private CategoryService categoryService;
     @Autowired
     private BookRepository bookRepository;
+    @Autowired
+    private BookWishlistRepository bookWishlistRepository;
+    @Autowired
+    private UserBookStatusRepository userBookStatusRepository;
 
     @Override
     public Book addBook(BookRequestDto bookRequestDto, String categoryName) {
@@ -85,32 +94,6 @@ public class BookServiceImpl implements BookService{
     }
 
     @Override
-    public List<BookResponseDto> getBooksByCategoryId(UUID id) {
-        Optional<Category> category = categoryRepository.findById(id);
-        if(category.isEmpty()){
-            throw new IdNotFoundException("Given Category ID is Not Found");
-        }
-
-        List<Book> bookList = bookRepository.findAllByCategory_id(category.get().getId());
-        if(bookList.isEmpty()){
-            return new ArrayList<>();
-        }
-        List<BookResponseDto> bookResponseDtos = new ArrayList<>();
-        for(Book book : bookList){
-            bookResponseDtos.add(BookDtoMapper.convertEntityToBookResponseDto(book));
-        }
-        return bookResponseDtos;
-    }
-
-    @Override
-    public List<BookResponseDto> getBooksByCategoryName(String name) {
-        CategoryResponseDto category = categoryService.getCategoryByName(name);
-
-        UUID categoryId = category.getId();
-        return getBooksByCategoryId(categoryId);
-    }
-
-    @Override
     public Map<String, List<BookResponseDto>> getTop5BooksCategoryWise() {
         List<Book> topRatedBooks = bookRepository.getTop5BooksCategoryWise();
         Map<String , List<BookResponseDto>> responseMap = new HashMap<>();
@@ -145,6 +128,70 @@ public class BookServiceImpl implements BookService{
 
     }
 
+    public BookResponseDto viewBook(UUID bookId) {
+        Book book = bookRepository.findById(bookId).orElseThrow();
+        return BookDtoMapper.convertEntityToBookResponseDto(book);
+    }
+
+    @Override
+    public Boolean addToWishlist(Map<String, Object> reqBody) {
+        bookWishlistRepository.addToWishlist( UUID.fromString( reqBody.get("userId").toString()) ,
+                UUID.fromString( reqBody.get("bookId").toString()),Boolean.valueOf( reqBody.get("wishlistStatus").toString()) );
+        return Boolean.valueOf( reqBody.get("wishlistStatus").toString());
+    }
+
+    @Override
+    public String reserveBook(Map<String, Object> reqBody) {
+        UUID userId = UUID.fromString( reqBody.get("userId").toString());
+        UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
+
+        Book book = bookRepository.findById(bookId).orElseThrow();
+
+        if(book.getBookAvailableCount()<1){
+            throw new RuntimeException("Books are not available with given ID");
+        }
+
+        book.setBookAvailableCount(book.getBookAvailableCount()-1);
+        book = bookRepository.save(book);
+
+        UserBookStatus reserveBook = new UserBookStatus(userId,bookId, BookStatus.RESERVED);
+        userBookStatusRepository.save(reserveBook);
+
+        return "Book reserved SuccessFully.. Collect it by evening 6:00 pm , else it will be released";
+    }
+
+    @Override
+    public String collectBook(Map<String, Object> reqBody) {
+        UUID userId = UUID.fromString( reqBody.get("userId").toString());
+        UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
+
+        UserBookStatus userBookStatus = userBookStatusRepository.findByUserIdAndBookId(userId,bookId).orElseThrow();
+
+        if(userBookStatus.getBookStatus().equals(BookStatus.RESERVED)){
+            userBookStatus.setBookStatus(BookStatus.COLLECTED);
+            userBookStatusRepository.save(userBookStatus);
+        }
+
+        // implement collect timings and return timings
+        return "Book Collected Successfully..";
+    }
+
+    @Override
+    public void releaseBooks() {
+        List<UserBookStatus> reservedBooks = userBookStatusRepository.getReservedBooks();
+
+        List<UserBookStatus> all = userBookStatusRepository.findAll();
+
+        for(UserBookStatus item : reservedBooks){
+
+            Book book = bookRepository.findById(item.getBookId()).orElseThrow();
+            book.setBookAvailableCount(book.getBookAvailableCount()+1);
+            bookRepository.save(book);
+
+            userBookStatusRepository.delete(item);
+        }
+        return ;
+    }
 
 
 
@@ -153,7 +200,50 @@ public class BookServiceImpl implements BookService{
 
 
 
-//    @Override
+
+
+
+
+
+
+
+
+
+    ////////////////////////////////////////////////
+    @Override
+    public List<BookResponseDto> getBooksByCategoryId(UUID id) {
+        Optional<Category> category = categoryRepository.findById(id);
+        if(category.isEmpty()){
+            throw new IdNotFoundException("Given Category ID is Not Found");
+        }
+
+        List<Book> bookList = bookRepository.findAllByCategory_id(category.get().getId());
+        if(bookList.isEmpty()){
+            return new ArrayList<>();
+        }
+        List<BookResponseDto> bookResponseDtos = new ArrayList<>();
+        for(Book book : bookList){
+            bookResponseDtos.add(BookDtoMapper.convertEntityToBookResponseDto(book));
+        }
+        return bookResponseDtos;
+    }
+
+    @Override
+    public List<BookResponseDto> getBooksByCategoryName(String name) {
+        CategoryResponseDto category = categoryService.getCategoryByName(name);
+
+        UUID categoryId = category.getId();
+        return getBooksByCategoryId(categoryId);
+    }
+
+
+
+
+
+
+
+
+    //    @Override
 //    public Map<String, List<BookResponseDto>> getBooksCategoryWise() {
 //       Map<String,List<Book>> responseMap = new HashMap<>();
 //

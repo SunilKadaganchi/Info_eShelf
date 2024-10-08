@@ -22,6 +22,7 @@ public class BookDtoMapper {
     public static BookResponseDto convertEntityToBookResponseDto(Book book){
         BookResponseDto responseDto = new BookResponseDto();
         responseDto.setBookName(book.getBookName());
+        responseDto.setBookId(book.getId());
         responseDto.setCategoryName(book.getCategory().getCategoryName());
         responseDto.setDescription(book.getDescription());
         responseDto.setAuthorName(book.getAuthorName());
