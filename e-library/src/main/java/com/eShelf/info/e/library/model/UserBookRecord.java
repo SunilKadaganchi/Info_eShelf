@@ -6,25 +6,33 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+
 @Entity
 @Getter
 @Setter
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"userId","bookId"}))
-public class UserBookStatus extends BaseModel {
+public class UserBookRecord extends BaseModel{
+
     @Column(nullable = false)
     private UUID userId;
+
     @Column(nullable = false)
     private UUID bookId;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BookStatus bookStatus;
 
-    public UserBookStatus() {
+    private boolean isRenewed;
+
+
+    public UserBookRecord() {
     }
 
-    public UserBookStatus(UUID userId, UUID bookId, BookStatus bookStatus) {
+    public UserBookRecord(UUID userId, UUID bookId, BookStatus bookStatus, boolean isRenewed) {
         this.userId = userId;
         this.bookId = bookId;
         this.bookStatus = bookStatus;
+        this.isRenewed = isRenewed;
     }
 }

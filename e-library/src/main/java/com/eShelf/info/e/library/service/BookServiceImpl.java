@@ -5,14 +5,8 @@ import com.eShelf.info.e.library.dto.BookResponseDto;
 import com.eShelf.info.e.library.dto.CategoryResponseDto;
 import com.eShelf.info.e.library.exception.IdNotFoundException;
 import com.eShelf.info.e.library.mapper.BookDtoMapper;
-import com.eShelf.info.e.library.model.Book;
-import com.eShelf.info.e.library.model.BookStatus;
-import com.eShelf.info.e.library.model.Category;
-import com.eShelf.info.e.library.model.UserBookStatus;
-import com.eShelf.info.e.library.repo.BookRepository;
-import com.eShelf.info.e.library.repo.BookWishlistRepository;
-import com.eShelf.info.e.library.repo.CategoryRepository;
-import com.eShelf.info.e.library.repo.UserBookStatusRepository;
+import com.eShelf.info.e.library.model.*;
+import com.eShelf.info.e.library.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +28,7 @@ public class BookServiceImpl implements BookService{
     @Autowired
     private BookWishlistRepository bookWishlistRepository;
     @Autowired
-    private UserBookStatusRepository userBookStatusRepository;
+    private UserBookRecordRepository userBookRecordRepository;
 
     @Override
     public Book addBook(BookRequestDto bookRequestDto, String categoryName) {
@@ -154,8 +148,8 @@ public class BookServiceImpl implements BookService{
         book.setBookAvailableCount(book.getBookAvailableCount()-1);
         book = bookRepository.save(book);
 
-        UserBookStatus reserveBook = new UserBookStatus(userId,bookId, BookStatus.RESERVED);
-        userBookStatusRepository.save(reserveBook);
+        UserBookRecord reserveBook = new UserBookRecord(userId,bookId, BookStatus.RESERVED,false );
+        userBookRecordRepository.save(reserveBook);
 
         return "Book reserved SuccessFully.. Collect it by evening 6:00 pm , else it will be released";
     }
@@ -165,12 +159,15 @@ public class BookServiceImpl implements BookService{
         UUID userId = UUID.fromString( reqBody.get("userId").toString());
         UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
 
-        UserBookStatus userBookStatus = userBookStatusRepository.findByUserIdAndBookId(userId,bookId).orElseThrow();
+        UserBookRecord record = userBookRecordRepository.findByUserIdAndBookId(userId,bookId).orElseThrow();
 
-        if(userBookStatus.getBookStatus().equals(BookStatus.RESERVED)){
-            userBookStatus.setBookStatus(BookStatus.COLLECTED);
-            userBookStatusRepository.save(userBookStatus);
+        if(record.getBookStatus().equals(BookStatus.RESERVED)){
+            record.setBookStatus(BookStatus.COLLECTED);
+            userBookRecordRepository.save(record);
+
+
         }
+
 
         // implement collect timings and return timings
         return "Book Collected Successfully..";
@@ -178,19 +175,16 @@ public class BookServiceImpl implements BookService{
 
     @Override
     public void releaseBooks() {
-        List<UserBookStatus> reservedBooks = userBookStatusRepository.getReservedBooks();
+        List<UserBookRecord> reservedBooks = userBookRecordRepository.getReservedBooks();
 
-        List<UserBookStatus> all = userBookStatusRepository.findAll();
-
-        for(UserBookStatus item : reservedBooks){
+        for(UserBookRecord item : reservedBooks){
 
             Book book = bookRepository.findById(item.getBookId()).orElseThrow();
             book.setBookAvailableCount(book.getBookAvailableCount()+1);
             bookRepository.save(book);
 
-            userBookStatusRepository.delete(item);
+            userBookRecordRepository.delete(item);
         }
-        return ;
     }
 
 
