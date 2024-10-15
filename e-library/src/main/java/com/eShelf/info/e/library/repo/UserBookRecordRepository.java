@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface UserBookRecordRepository extends JpaRepository<UserBookRecord, UUID> {
 
-    Optional<UserBookRecord> findByUserIdAndBookId(UUID userId, UUID bookId);
+    Optional<UserBookRecord> findByIdAndUserIdAndBookId(UUID id ,UUID userId, UUID bookId);
 
     @Query(value = " select * from User_Book_Record where book_status='RESERVED' ", nativeQuery = true)
     List<UserBookRecord> getReservedBooks();

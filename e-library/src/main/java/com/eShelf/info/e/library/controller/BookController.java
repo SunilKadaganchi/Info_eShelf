@@ -81,6 +81,7 @@ public class BookController {
     //this API , changes the book state from RESERVED TO COLLECTED,
     // when user collects their already reserved book
     // this API can only be called by LIBRARY_ADMIN once the user collected the book from library
+    // collected book has to be returned / renewed  within 10 days.
     @PostMapping("/collect")
     public ResponseEntity<String> collectFromLibrary(@RequestBody Map<String,Object> reqBody){
         return ResponseEntity.ok( bookService.collectBook(reqBody));
@@ -90,6 +91,16 @@ public class BookController {
     public ResponseEntity<Void> releaseReservedBooks(){
         bookService.releaseBooks();
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/renew")
+    public ResponseEntity<String> renewBook(@RequestBody Map<String,Object> reqBody){
+        return ResponseEntity.ok( bookService.renewBook(reqBody));
+    }
+
+    @PostMapping("/return")
+    public ResponseEntity<String> returnBook(@RequestBody Map<String,Object> reqBody){
+        return ResponseEntity.ok( bookService.returnBook(reqBody) );
     }
 
 

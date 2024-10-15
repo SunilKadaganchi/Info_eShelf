@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 import javax.management.relation.RoleUnresolved;
 import java.awt.image.ImageProducer;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -134,6 +137,8 @@ public class BookServiceImpl implements BookService{
         return Boolean.valueOf( reqBody.get("wishlistStatus").toString());
     }
 
+    //=================================================================================
+    // implement multiThreading concept so no users can book same book at a time
     @Override
     public String reserveBook(Map<String, Object> reqBody) {
         UUID userId = UUID.fromString( reqBody.get("userId").toString());
@@ -155,22 +160,29 @@ public class BookServiceImpl implements BookService{
     }
 
     @Override
-    public String collectBook(Map<String, Object> reqBody) {
+    public String collectBook(Map<String, Object> reqBody)   {
         UUID userId = UUID.fromString( reqBody.get("userId").toString());
         UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
+        UUID recordId = UUID.fromString( reqBody.get("id").toString());
 
-        UserBookRecord record = userBookRecordRepository.findByUserIdAndBookId(userId,bookId).orElseThrow();
+        UserBookRecord record = userBookRecordRepository.findByIdAndUserIdAndBookId(recordId,userId,bookId).orElseThrow();
 
         if(record.getBookStatus().equals(BookStatus.RESERVED)){
             record.setBookStatus(BookStatus.COLLECTED);
             userBookRecordRepository.save(record);
 
-
         }
-
+        else{
+            throw new RuntimeException("Book is Not Reserved...");
+        }
+        // collected book or renewed book has to return with in 10 days
+        // return time can be calculated using Updated_at field timing
+        // adding 10 days to the updated field will give the return time.
+        Instant collectedTime = record.getUpdatedAt();
+        Instant returnTime = collectedTime.plus(Duration.ofDays(10));
 
         // implement collect timings and return timings
-        return "Book Collected Successfully..";
+        return "Book Collected Successfully , Book has to renewed or returned with in 10 days :-"+returnTime;
     }
 
     @Override
@@ -188,10 +200,54 @@ public class BookServiceImpl implements BookService{
     }
 
 
+    @Override
+    public String renewBook(Map<String, Object> reqBody) {
+        UUID userId = UUID.fromString( reqBody.get("userId").toString());
+        UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
+        UUID recordId = UUID.fromString( reqBody.get("id").toString());
+
+        UserBookRecord record = userBookRecordRepository.findByIdAndUserIdAndBookId(recordId,userId,bookId).orElseThrow();
+
+            if(record.getBookStatus().equals(BookStatus.COLLECTED) && !(record.isRenewed())){
+                record.setRenewed(true);
+                userBookRecordRepository.save(record);
+
+                Instant renewedTime = record.getCreatedAt();
+                Instant returnTime = renewedTime.plus(Duration.ofDays(20));
+
+                // implement collect timings and return timings
+                return "Book Renewed Successfully , Book has to be returned  :-"+returnTime;
+
+            }
+            else{
+                return "Book can Renewed only ONCE , something went wrong..";
+            }
+    }
+
+    @Override
+    public String returnBook(Map<String, Object> reqBody) {
+
+        UUID userId = UUID.fromString( reqBody.get("userId").toString());
+        UUID bookId = UUID.fromString( reqBody.get("bookId").toString());
+        UUID recordId = UUID.fromString( reqBody.get("id").toString());
+
+        Book book = bookRepository.findById(bookId).orElseThrow();
+
+        UserBookRecord record = userBookRecordRepository.findByIdAndUserIdAndBookId(recordId,userId,bookId).orElseThrow();
+
+        if(record.getBookStatus().equals(BookStatus.COLLECTED)){
+            book.setBookAvailableCount(book.getBookAvailableCount()+1);
+            bookRepository.save(book);
+            record.setBookStatus(BookStatus.RETURNED);
+            userBookRecordRepository.save(record);
+        }
+        else{
+            throw new RuntimeException("Something went wrong.....");
+        }
 
 
-
-
+        return "Book returned Successfully.Rate the Book, Thank you...";
+    }
 
 
 

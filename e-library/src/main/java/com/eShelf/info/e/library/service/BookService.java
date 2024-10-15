@@ -27,6 +27,10 @@ public interface BookService {
 
     void releaseBooks();
 
+    String renewBook(Map<String, Object> reqBody);
+
+    String returnBook(Map<String, Object> reqBody);
+
 
 
 

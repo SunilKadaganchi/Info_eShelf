@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"userId","bookId"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"userId","bookId","id"}))
 public class UserBookRecord extends BaseModel{
 
     @Column(nullable = false)
