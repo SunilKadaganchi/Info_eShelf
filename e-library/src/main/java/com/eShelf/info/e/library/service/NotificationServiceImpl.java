@@ -45,8 +45,9 @@ public class NotificationServiceImpl implements NotificationService{
              }
             else if(notifyAbout.equalsIgnoreCase("Release")) {
                 mailMessage.setSubject("Book Release");
-                mailMessage.setText("Sorry to inform,\n " +
-                        "that your Reserved book has been released as you haven't collected it before 6:00 pm ");
+                mailMessage.setText("Sorry to inform " +
+                        "that your Reserved book has been released as you haven't collected it before 6:00 pm " +
+                        "Replies are Not Monitored , its an Automated mail.");
                  }
             mailMessage.setTo(toEmail);
 

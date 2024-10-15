@@ -25,7 +25,7 @@ public class NotificationController {
     // this API will be called daily @6:00 pm , to Notify about  reserved books are released
     @GetMapping("/released")
     public ResponseEntity<Void> releasedNotification(){
-        notificationService.notifyCollectAndRelease("Release ");
+        notificationService.notifyCollectAndRelease("Release");
         return ResponseEntity.ok().build();
     }
 }
