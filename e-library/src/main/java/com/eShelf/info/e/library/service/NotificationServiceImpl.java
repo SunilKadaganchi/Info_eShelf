@@ -22,6 +22,9 @@ public class NotificationServiceImpl implements NotificationService{
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private BookService bookService;
+
 
 
     @Override
@@ -34,6 +37,11 @@ public class NotificationServiceImpl implements NotificationService{
             userIds.add(item.getUserId());
         }
         List<String> emailsList = userRepository.findEmailsIdByIds(userIds);
+
+        // release the books also
+        if(notifyAbout.equalsIgnoreCase("Release")) {
+            bookService.releaseBooks();
+        }
 
         for(String toEmail : emailsList) {
 
